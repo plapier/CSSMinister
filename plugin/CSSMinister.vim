@@ -12,6 +12,10 @@
 " TODO: fix slow execution time when converting one color at a time
 " TODO: alt. delimeters for mappings
 " =============================================================================
+"
+" Editor:        Phil LaPier - http://lapier.me
+" Last Modified: Sept 19, 2011
+
 
 " Script init stuff {{{1
 if exists("g:CSSMinister_version") || &cp
@@ -22,9 +26,12 @@ let g:CSSMinister_version = "0.2.1"
 
 " Constants {{{1
 let s:RGB_NUM_RX    = '\v\crgb\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5])\);?'
+let s:RGBA_NUM_RX   = '\v\crgba\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*(\d(\.\d{1,3})?)\);?'
 let s:RGB_PERC_RX   = '\v\crgb\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%)\);?'
+let s:RGBA_PERC_RX  = '\v\crgba\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d{1}(\.\d{1,3})?)\);?'
 let s:RGB_DISCOVERY = '\v\crgb\(\d+.*,\s*\d+.*,\s*\d+.*\);?'
 let s:HSL           = '\vhsl\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%)\);?'
+let s:HSLA          = '\vhsla\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%),s\*(\d{1}(\.\d{1,3})?)\);?'
 let s:HEX           = '\v([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})'
 let s:HEX_DISCOVERY = '\v#[0-9a-fA-F]{3,6}'
 let s:W3C_COLOR_RX  = '\v\c(black|silver|gray|white(-space)@!|maroon|red|purple|fuchsia|green|lime|olive|yellow|navy|blue|teal|aqua)'
@@ -61,6 +68,7 @@ endfunction
 
 if g:CSSMinisterCreateMappings
    call s:CreateMappings('<Plug>CSSMinisterHexToRGB',        ',xr')
+   call s:CreateMappings('<Plug>CSSMinisterHexToRGBA',       ',xra')
    call s:CreateMappings('<Plug>CSSMinisterHexToRGBAll',     ',axr')
    call s:CreateMappings('<Plug>CSSMinisterHexToHSL',        ',xh')
    call s:CreateMappings('<Plug>CSSMinisterHexToHSLAll',     ',axh')
@@ -84,6 +92,7 @@ endif
 
 
 noremap <silent> <script> <Plug>CSSMinisterHexToRGB        :call MinisterConvert('hex', 'rgb')<CR>
+noremap <silent> <script> <Plug>CSSMinisterHexToRGBA       :call MinisterConvert('hex', 'rgba')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHexToRGBAll     :call MinisterConvert('hex', 'rgb', 'all')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHexToHSL        :call MinisterConvert('hex', 'hsl')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHexToHSLAll     :call MinisterConvert('hex', 'hsl', 'all')<CR>
@@ -115,7 +124,7 @@ function! MinisterConvert(from, to, ...)
     if a:from == a:to | return | endif
     let all = a:0 >= 1 ? a:1 : ''
 
-    if a:from =~ '\vhex|rgb|hsl|keyword'
+    if a:from =~ '\vhex|rgb|rgba|hsl|keyword'
         if all == 'all'
             call s:ReplaceAll(a:from, a:to)
         else 
@@ -134,6 +143,19 @@ function! ToRGB(from_format)
         return s:HSLToRGB(a:from_format)
     elseif s:IsKeyword(a:from_format)
         return s:HexToRGB(ToHex(a:from_format))
+    endif
+endfunction
+
+
+" -----------------------------------------------------------------------------
+" ToRGBA: Converts colors in hex or hsl format to rgb
+function! ToRGBA(from_format)
+    if s:IsHex(a:from_format)
+        return s:HexToRGBA(a:from_format)
+    elseif s:IsHSL(a:from_format)
+        return s:HSLToRGBA(a:from_format)
+    elseif s:IsKeyword(a:from_format)
+        return s:HexToRGBA(ToHex(a:from_format))
     endif
 endfunction
 
@@ -176,6 +198,10 @@ function! s:IsRGB(color)
     return a:color =~ s:RGB_NUM_RX || a:color =~ s:RGB_PERC_RX
 endfunction
 
+function! s:IsRGBA(color)
+    return a:color =~ s:RGBA_NUM_RX || a:color =~ s:RGBA_PERC_RX
+endfunction
+
 function! s:IsHSL(color)
     return a:color =~ s:HSL
 endfunction
@@ -198,6 +224,19 @@ function! s:HexToRGB(hex)
     elseif strlen(a:hex) == 4
         let color = split(a:hex, '\zs')
         return s:OutputRGB(repeat(color[1], 2), repeat(color[2],2), repeat(color[3], 2))
+    endif
+endfunction
+
+
+" -----------------------------------------------------------------------------
+" Color to RGBA conversion {{{1
+function! s:HexToRGBA(hex)
+    if strlen(a:hex) == 7
+        let color = matchlist(a:hex, '\v([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})')
+        return s:OutputRGBA(color[1], color[2], color[3], '1.0')
+    elseif strlen(a:hex) == 4
+        let color = split(a:hex, '\zs')
+        return s:OutputRGBA(repeat(color[1], 2), repeat(color[2],2), repeat(color[3], 2), '1.0')
     endif
 endfunction
 
@@ -244,6 +283,10 @@ endfunction
 
 function! s:OutputRGB(r, g, b)
     return 'rgb(' . printf('%d', '0x' . a:r) . ', ' . printf('%d', '0x' . a:g) . ', ' . printf('%d', '0x' . a:b) . ')'
+endfunction
+
+function! s:OutputRGBA(r, g, b, a)
+    return 'rgba(' . printf('%d', '0x' . a:r) . ', ' . printf('%d', '0x' . a:g) . ', ' . printf('%d', '0x' . a:b) . ', ' . printf('%.1f', '0x' . a:a + 0.0) . ')'
 endfunction
 
 
@@ -316,6 +359,7 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
+"
 " Color to Hex conversion {{{1
 " s:RGBToHex: Converts a color from functional notation to its hex equivalent.
 " Args:
@@ -349,6 +393,7 @@ endfunction
 function! s:KeywordToHex(kw)
     return s:W3C_COLORS[a:kw]
 endfunction
+
 
 
 " Replacement functions {{{1
@@ -414,12 +459,13 @@ endfunction
 function! s:ReplacementPairings(from, to)
     let pairings = {}
     let from_rx_mappings = { 'rgb': s:RGB_NUM_RX . '|' . strpart(s:RGB_PERC_RX, 4, strlen(s:RGB_PERC_RX)), 
+                           \ 'rgba': s:RGBA_NUM_RX . '|' . strpart(s:RGBA_PERC_RX, 4, strlen(s:RGBA_PERC_RX)), 
                            \ 'hsl': s:HSL, 
                            \ 'hex': s:HEX_DISCOVERY, 
                            \ 'keyword': s:W3C_COLOR_RX }
 
     if a:to == 'hex' | let pairings.to = 'Hex' |
-    \ elseif a:to == 'rgb' || a:to == 'hsl' | let pairings.to = toupper(a:to) | endif
+    \ elseif a:to == 'rgb' || a:to == 'rgba' || a:to == 'hsl' | let pairings.to = toupper(a:to) | endif
 
     let pairings.from_rx = from_rx_mappings[a:from]
 
@@ -428,3 +474,4 @@ endfunction
 
 
 " vim:ft=vim foldmethod=marker sw=4
+"
