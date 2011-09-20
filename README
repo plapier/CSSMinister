@@ -4,15 +4,16 @@ CSSMinister provides key mappings that convert any hexadecimal, RGB or HSL color
 
 Mappings that change formats one color at a time include:
 
-  ,xr - hexadecimal to RGB
-  ,xh - hexadecimal to HSL
-  ,rx - RGB to hexadecimal
-  ,rh - RGB to HSL
-  ,hx - HSL to hexadecimal
-  ,hr - HSL to RGB
-  ,kx - color keyword to hexadecimal
-  ,kr - color keyword to RGB
-  ,kh - color keyword to HSL
+  ,xr  -   hexadecimal to RGB
+  ,xra -   hexadecimal to RGBA
+  ,xh  -   hexadecimal to HSL
+  ,rx  -   RGB to hexadecimal
+  ,rh  -   RGB to HSL
+  ,hx  -   HSL to hexadecimal
+  ,hr  -   HSL to RGB
+  ,kx  -   color keyword to hexadecimal
+  ,kr  -   color keyword to RGB
+  ,kh  -   color keyword to HSL
 
 Mappings that change all colors matching the requested color format:
 
