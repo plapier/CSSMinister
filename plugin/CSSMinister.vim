@@ -24,6 +24,7 @@ endif
 
 let g:CSSMinister_version = "0.2.1"
 
+
 " Constants {{{1
 let s:RGB_NUM_RX    = '\v\crgb\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5])\);?'
 let s:RGBA_NUM_RX   = '\v\crgba\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*(\d(\.\d{1,3})?)\);?'
@@ -31,7 +32,7 @@ let s:RGB_PERC_RX   = '\v\crgb\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0
 let s:RGBA_PERC_RX  = '\v\crgba\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d{1}(\.\d{1,3})?)\);?'
 let s:RGB_DISCOVERY = '\v\crgb\(\d+.*,\s*\d+.*,\s*\d+.*\);?'
 let s:HSL           = '\vhsl\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%)\);?'
-let s:HSLA          = '\vhsla\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%),s\*(\d{1}(\.\d{1,3})?)\);?'
+let s:HSLA          = '\vhsla\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%),\s*((\d+)?(\.\d{1,2})?)\);?'
 let s:HEX           = '\v([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})'
 let s:HEX_DISCOVERY = '\v#[0-9a-fA-F]{3,6}'
 let s:W3C_COLOR_RX  = '\v\c(black|silver|gray|white(-space)@!|maroon|red|purple|fuchsia|green|lime|olive|yellow|navy|blue|teal|aqua)'
@@ -79,12 +80,14 @@ if g:CSSMinisterCreateMappings
    call s:CreateMappings('<Plug>CSSMinisterRGBToHSL',        ',rh')
    call s:CreateMappings('<Plug>CSSMinisterRGBToHSLA',       ',rha')
    call s:CreateMappings('<Plug>CSSMinisterRGBToHSLAll',     ',arh')
+   call s:CreateMappings('<Plug>CSSMinisterRGBAToHSLA',      ',raha')
    call s:CreateMappings('<Plug>CSSMinisterHSLToHex',        ',hx')
    call s:CreateMappings('<Plug>CSSMinisterHSLToHexAll',     ',ahx')
    call s:CreateMappings('<Plug>CSSMinisterHSLToRGB',        ',hr')
    call s:CreateMappings('<Plug>CSSMinisterHSLToHSLA',       ',ha')
    call s:CreateMappings('<Plug>CSSMinisterHSLToRGBA',       ',hra')
    call s:CreateMappings('<Plug>CSSMinisterHSLToRGBAll',     ',ahr')
+   call s:CreateMappings('<Plug>CSSMinisterHSLAToRGBA',      ',hara')
    call s:CreateMappings('<Plug>CSSMinisterKeywordToHex',    ',kx')
    call s:CreateMappings('<Plug>CSSMinisterKeywordToHexAll', ',akx')
    call s:CreateMappings('<Plug>CSSMinisterKeywordToRGB',    ',kr')
@@ -108,12 +111,14 @@ noremap <silent> <script> <Plug>CSSMinisterRGBToHexAll     :call MinisterConvert
 noremap <silent> <script> <Plug>CSSMinisterRGBToHSL        :call MinisterConvert('rgb', 'hsl')<CR>
 noremap <silent> <script> <Plug>CSSMinisterRGBToHSLA       :call MinisterConvert('rgb', 'hsla')<CR>
 noremap <silent> <script> <Plug>CSSMinisterRGBToHSLAll     :call MinisterConvert('rgb', 'hsl', 'all')<CR>
+noremap <silent> <script> <Plug>CSSMinisterRGBAToHSLA      :call MinisterConvert('rgba', 'hsla')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToHex        :call MinisterConvert('hsl', 'hex')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToHexAll     :call MinisterConvert('hsl', 'hex', 'all')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToHSLA       :call MinisterConvert('hsl', 'hsla')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToRGB        :call MinisterConvert('hsl', 'rgb')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToRGBA       :call MinisterConvert('hsl', 'rgba')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToRGBAll     :call MinisterConvert('hsl', 'rgb', 'all')<CR>
+noremap <silent> <script> <Plug>CSSMinisterHSLAToRGBA      :call MinisterConvert('hsla', 'rgba')<CR>
 noremap <silent> <script> <Plug>CSSMinisterKeywordToHex    :call MinisterConvert('keyword', 'hex')<CR>
 noremap <silent> <script> <Plug>CSSMinisterKeywordToHexAll :call MinisterConvert('keyword', 'hex', 'all')<CR>
 noremap <silent> <script> <Plug>CSSMinisterKeywordToRGB    :call MinisterConvert('keyword', 'rgb')<CR>
@@ -164,6 +169,8 @@ function! ToRGBA(from_format)
         return s:HexToRGBA(a:from_format)
     elseif s:IsHSL(a:from_format)
         return s:HSLToRGBA(a:from_format)
+    elseif s:IsHSLA(a:from_format)
+        return s:HSLAToRGBA(a:from_format)
     elseif s:IsRGB(a:from_format)
         return s:RGBToRGBA(a:from_format)
     elseif s:IsKeyword(a:from_format)
@@ -302,6 +309,7 @@ function! s:HSLToRGB(hsl)
 endfunction
 
 
+
 " -----------------------------------------------------------------------------
 " s:HSLToRGBA: http://www.easyrgb.com/index.php?X=MATH&H=19#text19 
 function! s:HSLToRGBA(hsl)
@@ -330,6 +338,42 @@ function! s:HSLToRGBA(hsl)
 endfunction
 
 
+" -----------------------------------------------------------------------------
+" s:HSLAToRGBA: http://www.easyrgb.com/index.php?X=MATH&H=19#text19 
+function! s:HSLAToRGBA(hsla)
+    let match = matchlist(a:hsla, s:HSLA)
+    " the next expression normalizes the angle into the 0-360 range
+    " see: http://www.w3.org/TR/css3-color/#hsl-color
+    let h = match[1] >= 0 && match[1] <= 360 ? match[1]/360.0 : (((match[1] % 360) + 360) % 360)/360.0
+    let s = match[2]/100.0
+    let l = match[3]/100.0
+    let a = match[4]
+
+    let match = map(match, 'str2nr(v:val)')
+
+    let rgba = {}
+    if s == 0
+        let [rgba.r, rgba.g, rgba.b] = map([l, l, l], 'float2nr(v:val * 255)')
+        let rgba.a = a
+        let rgba = map(rgba, 'v:val')
+    else
+        let var_2 = l < 0.5 ? l * (1.0 + s) : (l + s) - (s * l)
+        let var_1 = 2 * l - var_2
+
+        let rgba.r = s:Hue2rgba(var_1, var_2, h + (1.0/3))
+        let rgba.g = s:Hue2rgba(var_1, var_2, h)
+        let rgba.b = s:Hue2rgba(var_1, var_2, h - (1.0/3))
+        let rgba.a = a
+
+        let rgba = map(rgb, 'v:val * 255')
+        let rgba = map(rgba)
+    endif
+
+    return 'rgba(' . float2nr(rgba.r) . ', ' . float2nr(rgba.g) . ', ' . float2nr(rgba.b) . ', ' . rgba.a . ')'
+endfunction
+
+
+
 " s:HSLToHSLA:
 function! s:HSLToHSLA(hsl)
     let match = matchlist(a:hsl, s:HSL)
@@ -342,6 +386,7 @@ function! s:HSLToHSLA(hsl)
 
     return 'hsla(' . hsl.h . ', ' . hsl.s . ', ' . hsl.l . ', 1.0)'
 endfunction
+
 
 
 " -----------------------------------------------------------------------------
@@ -378,7 +423,6 @@ function! s:RGBToRGBA(rgb)
 
     return 'rgba(' . rgb.r . ', ' . rgb.g . ', ' . rgb.b . ', 1.0)'
 endfunction
-
 
 
 
