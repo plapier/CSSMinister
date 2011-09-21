@@ -73,6 +73,7 @@ if g:CSSMinisterCreateMappings
    call s:CreateMappings('<Plug>CSSMinisterHexToHSL',        ',xh')
    call s:CreateMappings('<Plug>CSSMinisterHexToHSLA',       ',xha')
    call s:CreateMappings('<Plug>CSSMinisterHexToHSLAll',     ',axh')
+   call s:CreateMappings('<Plug>CSSMinisterRGBToRGBA',       ',ra')
    call s:CreateMappings('<Plug>CSSMinisterRGBToHex',        ',rx')
    call s:CreateMappings('<Plug>CSSMinisterRGBToHexAll',     ',arx')
    call s:CreateMappings('<Plug>CSSMinisterRGBToHSL',        ',rh')
@@ -101,6 +102,7 @@ noremap <silent> <script> <Plug>CSSMinisterHexToRGBAll     :call MinisterConvert
 noremap <silent> <script> <Plug>CSSMinisterHexToHSL        :call MinisterConvert('hex', 'hsl')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHexToHSLA       :call MinisterConvert('hex', 'hsla')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHexToHSLAll     :call MinisterConvert('hex', 'hsl', 'all')<CR>
+noremap <silent> <script> <Plug>CSSMinisterRGBToRGBA       :call MinisterConvert('rgb', 'rgba')<CR>
 noremap <silent> <script> <Plug>CSSMinisterRGBToHex        :call MinisterConvert('rgb', 'hex')<CR>
 noremap <silent> <script> <Plug>CSSMinisterRGBToHexAll     :call MinisterConvert('rgb', 'hex', 'all')<CR>
 noremap <silent> <script> <Plug>CSSMinisterRGBToHSL        :call MinisterConvert('rgb', 'hsl')<CR>
@@ -162,6 +164,8 @@ function! ToRGBA(from_format)
         return s:HexToRGBA(a:from_format)
     elseif s:IsHSL(a:from_format)
         return s:HSLToRGBA(a:from_format)
+    elseif s:IsRGB(a:from_format)
+        return s:RGBToRGBA(a:from_format)
     elseif s:IsKeyword(a:from_format)
         return s:HexToRGBA(ToHex(a:from_format))
     endif
@@ -334,9 +338,7 @@ function! s:HSLToHSLA(hsl)
     let l = match[3]
 
     let hsl= {}
-    let hsl.h = h
-    let hsl.s = s
-    let hsl.l = l
+    let [hsl.h, hsl.s, hsl.l] = match[1:3]
 
     return 'hsla(' . hsl.h . ', ' . hsl.s . ', ' . hsl.l . ', 1.0)'
 endfunction
@@ -361,6 +363,22 @@ endfunction
 function! s:OutputRGBA(r, g, b, a)
     return 'rgba(' . printf('%d', '0x' . a:r) . ', ' . printf('%d', '0x' . a:g) . ', ' . printf('%d', '0x' . a:b) . ', ' . printf('%.1f', '0x' . a:a + 0.0) . ')'
 endfunction
+
+
+" Only works with non-percent RGB values
+" s:RGBToRGBA:
+function! s:RGBToRGBA(rgb)
+    let norm_rgb = matchlist(a:rgb, s:RGB_NUM_RX)
+    let r = norm_rgb[1]
+    let g = norm_rgb[2]
+    let b = norm_rgb[3]
+
+    let rgb= {}
+    let [rgb.r, rgb.g, rgb.b] = norm_rgb[1:3]
+
+    return 'rgba(' . rgb.r . ', ' . rgb.g . ', ' . rgb.b . ', 1.0)'
+endfunction
+
 
 
 
