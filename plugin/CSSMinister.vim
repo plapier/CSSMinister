@@ -79,6 +79,7 @@ if g:CSSMinisterCreateMappings
    call s:CreateMappings('<Plug>CSSMinisterHSLToHex',        ',hx')
    call s:CreateMappings('<Plug>CSSMinisterHSLToHexAll',     ',ahx')
    call s:CreateMappings('<Plug>CSSMinisterHSLToRGB',        ',hr')
+   call s:CreateMappings('<Plug>CSSMinisterHSLToRGBA',       ',hra')
    call s:CreateMappings('<Plug>CSSMinisterHSLToRGBAll',     ',ahr')
    call s:CreateMappings('<Plug>CSSMinisterKeywordToHex',    ',kx')
    call s:CreateMappings('<Plug>CSSMinisterKeywordToHexAll', ',akx')
@@ -103,6 +104,7 @@ noremap <silent> <script> <Plug>CSSMinisterRGBToHSLAll     :call MinisterConvert
 noremap <silent> <script> <Plug>CSSMinisterHSLToHex        :call MinisterConvert('hsl', 'hex')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToHexAll     :call MinisterConvert('hsl', 'hex', 'all')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToRGB        :call MinisterConvert('hsl', 'rgb')<CR>
+noremap <silent> <script> <Plug>CSSMinisterHSLToRGBA       :call MinisterConvert('hsl', 'rgba')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToRGBAll     :call MinisterConvert('hsl', 'rgb', 'all')<CR>
 noremap <silent> <script> <Plug>CSSMinisterKeywordToHex    :call MinisterConvert('keyword', 'hex')<CR>
 noremap <silent> <script> <Plug>CSSMinisterKeywordToHexAll :call MinisterConvert('keyword', 'hex', 'all')<CR>
@@ -266,6 +268,34 @@ function! s:HSLToRGB(hsl)
     endif
 
     return 'rgb(' . float2nr(rgb.r) . ', ' . float2nr(rgb.g) . ', ' . float2nr(rgb.b) . ')'
+endfunction
+
+
+" -----------------------------------------------------------------------------
+" s:HSLToRGBA: http://www.easyrgb.com/index.php?X=MATH&H=19#text19 
+function! s:HSLToRGBA(hsl)
+    let match = matchlist(a:hsl, s:HSL)
+    " the next expression normalizes the angle into the 0-360 range
+    " see: http://www.w3.org/TR/css3-color/#hsl-color
+    let h = match[1] >= 0 && match[1] <= 360 ? match[1]/360.0 : (((match[1] % 360) + 360) % 360)/360.0
+    let s = match[2]/100.0
+    let l = match[3]/100.0
+
+    let rgb = {}
+    if s == 0
+        let [rgb.r, rgb.g, rgb.b] = map([l, l, l], 'v:val * 255')
+    else
+        let var_2 = l < 0.5 ? l * (1.0 + s) : (l + s) - (s * l)
+        let var_1 = 2 * l - var_2
+
+        let rgb.r = s:Hue2RGB(var_1, var_2, h + (1.0/3))
+        let rgb.g = s:Hue2RGB(var_1, var_2, h)
+        let rgb.b = s:Hue2RGB(var_1, var_2, h - (1.0/3))
+
+        let rgb = map(rgb, 'v:val * 255')
+    endif
+
+    return 'rgba(' . float2nr(rgb.r) . ', ' . float2nr(rgb.g) . ', ' . float2nr(rgb.b) . ', 1.0)'
 endfunction
 
 
