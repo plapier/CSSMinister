@@ -71,14 +71,17 @@ if g:CSSMinisterCreateMappings
    call s:CreateMappings('<Plug>CSSMinisterHexToRGBA',       ',xra')
    call s:CreateMappings('<Plug>CSSMinisterHexToRGBAll',     ',axr')
    call s:CreateMappings('<Plug>CSSMinisterHexToHSL',        ',xh')
+   call s:CreateMappings('<Plug>CSSMinisterHexToHSLA',       ',xha')
    call s:CreateMappings('<Plug>CSSMinisterHexToHSLAll',     ',axh')
    call s:CreateMappings('<Plug>CSSMinisterRGBToHex',        ',rx')
    call s:CreateMappings('<Plug>CSSMinisterRGBToHexAll',     ',arx')
    call s:CreateMappings('<Plug>CSSMinisterRGBToHSL',        ',rh')
+   call s:CreateMappings('<Plug>CSSMinisterRGBToHSLA',       ',rha')
    call s:CreateMappings('<Plug>CSSMinisterRGBToHSLAll',     ',arh')
    call s:CreateMappings('<Plug>CSSMinisterHSLToHex',        ',hx')
    call s:CreateMappings('<Plug>CSSMinisterHSLToHexAll',     ',ahx')
    call s:CreateMappings('<Plug>CSSMinisterHSLToRGB',        ',hr')
+   call s:CreateMappings('<Plug>CSSMinisterHSLToHSLA',       ',ha')
    call s:CreateMappings('<Plug>CSSMinisterHSLToRGBA',       ',hra')
    call s:CreateMappings('<Plug>CSSMinisterHSLToRGBAll',     ',ahr')
    call s:CreateMappings('<Plug>CSSMinisterKeywordToHex',    ',kx')
@@ -96,13 +99,16 @@ noremap <silent> <script> <Plug>CSSMinisterHexToRGB        :call MinisterConvert
 noremap <silent> <script> <Plug>CSSMinisterHexToRGBA       :call MinisterConvert('hex', 'rgba')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHexToRGBAll     :call MinisterConvert('hex', 'rgb', 'all')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHexToHSL        :call MinisterConvert('hex', 'hsl')<CR>
+noremap <silent> <script> <Plug>CSSMinisterHexToHSLA       :call MinisterConvert('hex', 'hsla')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHexToHSLAll     :call MinisterConvert('hex', 'hsl', 'all')<CR>
 noremap <silent> <script> <Plug>CSSMinisterRGBToHex        :call MinisterConvert('rgb', 'hex')<CR>
 noremap <silent> <script> <Plug>CSSMinisterRGBToHexAll     :call MinisterConvert('rgb', 'hex', 'all')<CR>
 noremap <silent> <script> <Plug>CSSMinisterRGBToHSL        :call MinisterConvert('rgb', 'hsl')<CR>
+noremap <silent> <script> <Plug>CSSMinisterRGBToHSLA       :call MinisterConvert('rgb', 'hsla')<CR>
 noremap <silent> <script> <Plug>CSSMinisterRGBToHSLAll     :call MinisterConvert('rgb', 'hsl', 'all')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToHex        :call MinisterConvert('hsl', 'hex')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToHexAll     :call MinisterConvert('hsl', 'hex', 'all')<CR>
+noremap <silent> <script> <Plug>CSSMinisterHSLToHSLA       :call MinisterConvert('hsl', 'hsla')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToRGB        :call MinisterConvert('hsl', 'rgb')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToRGBA       :call MinisterConvert('hsl', 'rgba')<CR>
 noremap <silent> <script> <Plug>CSSMinisterHSLToRGBAll     :call MinisterConvert('hsl', 'rgb', 'all')<CR>
@@ -126,7 +132,7 @@ function! MinisterConvert(from, to, ...)
     if a:from == a:to | return | endif
     let all = a:0 >= 1 ? a:1 : ''
 
-    if a:from =~ '\vhex|rgb|rgba|hsl|keyword'
+    if a:from =~ '\vhex|rgb|rgba|hsl|hsla|keyword'
         if all == 'all'
             call s:ReplaceAll(a:from, a:to)
         else 
@@ -178,6 +184,23 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
+" ToHSLA: Converts colors in hex or rgb format to hsl
+function! ToHSLA(from_format)
+    if s:IsHex(a:from_format)
+        let rgb = s:HexToRGB(a:from_format)
+        return s:RGBToHSLA(rgb)
+    elseif s:IsRGB(a:from_format)
+        return s:RGBToHSLA(a:from_format)
+    elseif s:IsHSL(a:from_format)
+        return s:HSLToHSLA(a:from_format)
+    elseif s:IsKeyword(a:from_format)
+        let rgb = s:HexToRGB(ToHex(a:from_format))
+        return s:RGBToHSLA(rgb)
+    endif
+endfunction
+
+
+" -----------------------------------------------------------------------------
 " ToHex: Converts colors in rgb or hsl format to hex
 function! ToHex(from_format)
     if s:IsRGB(a:from_format)
@@ -206,6 +229,10 @@ endfunction
 
 function! s:IsHSL(color)
     return a:color =~ s:HSL
+endfunction
+
+function! s:IsHSLA(color)
+    return a:color =~ s:HSLA
 endfunction
 
 function! s:IsHex(color)
@@ -299,6 +326,22 @@ function! s:HSLToRGBA(hsl)
 endfunction
 
 
+" s:HSLToHSLA:
+function! s:HSLToHSLA(hsl)
+    let match = matchlist(a:hsl, s:HSL)
+    let h = match[1]
+    let s = match[2]
+    let l = match[3]
+
+    let hsl= {}
+    let hsl.h = h
+    let hsl.s = s
+    let hsl.l = l
+
+    return 'hsla(' . hsl.h . ', ' . hsl.s . ', ' . hsl.l . ', 1.0)'
+endfunction
+
+
 " -----------------------------------------------------------------------------
 " s:Hue2RGB: http://www.easyrgb.com/index.php?X=MATH&H=19#text19 
 function! s:Hue2RGB(v1, v2, vH)
@@ -318,6 +361,7 @@ endfunction
 function! s:OutputRGBA(r, g, b, a)
     return 'rgba(' . printf('%d', '0x' . a:r) . ', ' . printf('%d', '0x' . a:g) . ', ' . printf('%d', '0x' . a:b) . ', ' . printf('%.1f', '0x' . a:a + 0.0) . ')'
 endfunction
+
 
 
 " Color to HSL conversion {{{1
@@ -375,6 +419,62 @@ function! s:RGBToHSL(rgb)
 endfunction
 
 
+" Color to HSL conversion {{{1
+" -----------------------------------------------------------------------------
+" s:RGBToHSLA: http://www.easyrgb.com/index.php?X=MATH&H=18#text18
+" Args:
+"   rgb: A string representing a color in RGB format, i.e. 'hsl(0, 50%, 100%)'
+function! s:RGBToHSLA(rgb)
+    " normalize rgb values - they can be in either the range 0-255 or 0-100%
+    let norm_rgb = matchlist(a:rgb, s:RGB_PERC_RX)
+    if empty(norm_rgb)
+        let norm_rgb = matchlist(a:rgb, s:RGB_NUM_RX)
+        let norm_rgb = map(norm_rgb, 'str2nr(v:val)')
+    else 
+        " strip off the %'s
+        let norm_rgb = map(norm_rgb, 'str2nr(v:val)')
+        let norm_rgb = map(norm_rgb, 'v:val*255')
+    endif
+    
+    let rgb_dict = {}
+    let [rgb_dict.r, rgb_dict.g, rgb_dict.b] = norm_rgb[1:3]
+
+    let min = min(rgb_dict)/255.0
+    let max = max(rgb_dict)/255.0
+    let delta = (max - min)
+
+    let rgb_dict = map(rgb_dict, 'v:val/255.0')
+
+    let hsl = {}
+    let hsl.l = ( max + min )/2.0
+
+    if delta == 0
+        let [hsl.h, hsl.s] = [0, 0]
+    else 
+        let hsl.s = hsl.l < 0.5 ? delta/(max + min + 0.0) : delta/(2.0 - max - min)
+
+        let delta_rgb = {}
+        let delta_r = (((max - rgb_dict.r)/6.0) + (delta/2.0))/delta
+        let delta_g = (((max - rgb_dict.g)/6.0) + (delta/2.0))/delta
+        let delta_b = (((max - rgb_dict.b)/6.0) + (delta/2.0))/delta
+
+        if rgb_dict.r == max 
+            let hsl.h = delta_b - delta_g
+        elseif rgb_dict.g == max 
+            let hsl.h = (1/3.0) + delta_r - delta_b
+        elseif rgb_dict.b == max 
+            let hsl.h = (2/3.0) + delta_g - delta_r
+        endif
+
+        if hsl.h < 0 | let hsl.h += 1 | endif
+        if hsl.h > 1 | let hsl.h -= 1 | endif
+    endif
+
+    return s:OutputHSLA(hsl)
+endfunction
+
+
+
 " -----------------------------------------------------------------------------
 " s:OutputHSL: Outputs a formatted string in hsl format.
 " Args:
@@ -386,6 +486,20 @@ function! s:OutputHSL(hsl)
     let [temp_hsl.s, temp_hsl.l] = map([temp_hsl.s, temp_hsl.l], "float2nr(round(v:val * 100)) . '%'")
     return 'hsl(' . temp_hsl.h . ', ' . temp_hsl.s . ', ' . temp_hsl.l . ')'
 endfunction
+
+
+" -----------------------------------------------------------------------------
+" s:OutputHSLA: Outputs a formatted string in hsl format.
+" Args:
+"   hsl: Dictionary with h, s, l keys. Their values are normalized in order to
+"        return a valid formatted string. 
+function! s:OutputHSLA(hsl)
+    let temp_hsl = a:hsl
+    let temp_hsl.h = float2nr( temp_hsl.h * 360.0 )
+    let [temp_hsl.s, temp_hsl.l] = map([temp_hsl.s, temp_hsl.l], "float2nr(round(v:val * 100)) . '%'")
+    return 'hsla(' . temp_hsl.h . ', ' . temp_hsl.s . ', ' . temp_hsl.l . ', 1.0)'
+endfunction
+
 
 
 " -----------------------------------------------------------------------------
@@ -491,16 +605,18 @@ function! s:ReplacementPairings(from, to)
     let from_rx_mappings = { 'rgb': s:RGB_NUM_RX . '|' . strpart(s:RGB_PERC_RX, 4, strlen(s:RGB_PERC_RX)), 
                            \ 'rgba': s:RGBA_NUM_RX . '|' . strpart(s:RGBA_PERC_RX, 4, strlen(s:RGBA_PERC_RX)), 
                            \ 'hsl': s:HSL, 
+                           \ 'hsla': s:HSLA, 
                            \ 'hex': s:HEX_DISCOVERY, 
                            \ 'keyword': s:W3C_COLOR_RX }
 
     if a:to == 'hex' | let pairings.to = 'Hex' |
-    \ elseif a:to == 'rgb' || a:to == 'rgba' || a:to == 'hsl' | let pairings.to = toupper(a:to) | endif
+    \ elseif a:to == 'rgb' || a:to == 'rgba' || a:to == 'hsl' || a:to == 'hsla' | let pairings.to = toupper(a:to) | endif
 
     let pairings.from_rx = from_rx_mappings[a:from]
 
     return pairings
 endfunction
+
 
 
 " vim:ft=vim foldmethod=marker sw=4
