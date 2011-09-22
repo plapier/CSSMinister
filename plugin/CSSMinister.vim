@@ -27,9 +27,9 @@ let g:CSSMinister_version = "0.2.1"
 
 " Constants {{{1
 let s:RGB_NUM_RX    = '\v\crgb\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5])\);?'
-let s:RGBA_NUM_RX   = '\v\crgba\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*(\d(\.\d{1,3})?)\);?'
+let s:RGBA_NUM_RX   = '\v\crgba\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*((\d+)?(\.\d{1,2})?)\);?'
 let s:RGB_PERC_RX   = '\v\crgb\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%)\);?'
-let s:RGBA_PERC_RX  = '\v\crgba\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d{1}(\.\d{1,3})?)\);?'
+let s:RGBA_PERC_RX  = '\v\crgba\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*((\d+)?(\.\d{1,2})?)\);?'
 let s:RGB_DISCOVERY = '\v\crgb\(\d+.*,\s*\d+.*,\s*\d+.*\);?'
 let s:HSL           = '\vhsl\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%)\);?'
 let s:HSLA          = '\vhsla\((-?\d+),\s*(\d\%|[1-9][0-9]\%|100\%),\s*(\d\%|[1-9][0-9]\%|100\%),\s*((\d+)?(\.\d{1,2})?)\);?'
@@ -202,6 +202,8 @@ function! ToHSLA(from_format)
         return s:RGBToHSLA(rgb)
     elseif s:IsRGB(a:from_format)
         return s:RGBToHSLA(a:from_format)
+    elseif s:IsRGBA(a:from_format)
+        return s:RGBAToHSLA(a:from_format)
     elseif s:IsHSL(a:from_format)
         return s:HSLToHSLA(a:from_format)
     elseif s:IsKeyword(a:from_format)
@@ -349,24 +351,25 @@ function! s:HSLAToRGBA(hsla)
     let l = match[3]/100.0
     let a = match[4]
 
-    let match = map(match, 'str2nr(v:val)')
-
     let rgba = {}
     if s == 0
-        let [rgba.r, rgba.g, rgba.b] = map([l, l, l], 'float2nr(v:val * 255)')
+        let [rgba.r, rgba.g, rgba.b] = map([l, l, l], 'v:val * 255')
         let rgba.a = a
         let rgba = map(rgba, 'v:val')
     else
         let var_2 = l < 0.5 ? l * (1.0 + s) : (l + s) - (s * l)
         let var_1 = 2 * l - var_2
 
-        let rgba.r = s:Hue2rgba(var_1, var_2, h + (1.0/3))
-        let rgba.g = s:Hue2rgba(var_1, var_2, h)
-        let rgba.b = s:Hue2rgba(var_1, var_2, h - (1.0/3))
+        let rgba.r = s:Hue2RGB(var_1, var_2, h + (1.0/3))
+        let rgba.g = s:Hue2RGB(var_1, var_2, h)
+        let rgba.b = s:Hue2RGB(var_1, var_2, h - (1.0/3))
         let rgba.a = a
 
-        let rgba = map(rgb, 'v:val * 255')
-        let rgba = map(rgba)
+        "let [rgba.r, rgba.g, rgba.b] = map([l, l, l], 'v:val * 255')
+        let rgba.r = (rgba.r * 255)
+        let rgba.g = (rgba.g * 255)
+        let rgba.b = (rgba.b * 255)
+        let rgba = map(rgba, 'v:val')
     endif
 
     return 'rgba(' . float2nr(rgba.r) . ', ' . float2nr(rgba.g) . ', ' . float2nr(rgba.b) . ', ' . rgba.a . ')'
@@ -548,6 +551,7 @@ function! s:OutputHSL(hsl)
     let [temp_hsl.s, temp_hsl.l] = map([temp_hsl.s, temp_hsl.l], "float2nr(round(v:val * 100)) . '%'")
     return 'hsl(' . temp_hsl.h . ', ' . temp_hsl.s . ', ' . temp_hsl.l . ')'
 endfunction
+
 
 
 " -----------------------------------------------------------------------------
