@@ -24,10 +24,9 @@ endif
 
 let g:CSSMinister_version = "0.2.1"
 
-
 " Constants {{{1
 let s:RGB_NUM_RX    = '\v\crgb\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5])\);?'
-let s:RGBA_NUM_RX   = '\v\crgba\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*((\d+)?(\.\d{1,2})?)\);?'
+let s:RGBA_NUM_RX   = '\v\crgba\(([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*(\d+)\);?'
 let s:RGB_PERC_RX   = '\v\crgb\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%)\);?'
 let s:RGBA_PERC_RX  = '\v\crgba\((\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*(\d\%|[1-9]{1}[0-9]\%|100\%),\s*((\d+)?(\.\d{1,2})?)\);?'
 let s:RGB_DISCOVERY = '\v\crgb\(\d+.*,\s*\d+.*,\s*\d+.*\);?'
@@ -38,21 +37,21 @@ let s:HEX_DISCOVERY = '\v#[0-9a-fA-F]{3,6}'
 let s:W3C_COLOR_RX  = '\v\c(black|silver|gray|white(-space)@!|maroon|red|purple|fuchsia|green|lime|olive|yellow|navy|blue|teal|aqua)'
 
 let s:W3C_COLORS = { 'black':   '#000000',
-		   \ 'silver':  '#C0C0C0',
-		   \ 'gray':    '#808080',
-		   \ 'white':   '#FFFFFF',
-		   \ 'maroon':  '#800000',
-		   \ 'red':     '#FF0000',
-		   \ 'purple':  '#800080',
-		   \ 'fuchsia': '#FF00FF', 
-		   \ 'green':   '#008000',
-		   \ 'lime':    '#00FF00',
-		   \ 'olive':   '#808000',
-		   \ 'yellow':  '#FFFF00',
-		   \ 'navy':    '#000080',
-		   \ 'blue':    '#0000FF',
-		   \ 'teal':    '#008080',
-		   \ 'aqua':    '#00FFFF' }
+                   \ 'silver':  '#C0C0C0',
+                   \ 'gray':    '#808080',
+                   \ 'white':   '#FFFFFF',
+                   \ 'maroon':  '#800000',
+                   \ 'red':     '#FF0000',
+                   \ 'purple':  '#800080',
+                   \ 'fuchsia': '#FF00FF',
+                   \ 'green':   '#008000',
+                   \ 'lime':    '#00FF00',
+                   \ 'olive':   '#808000',
+                   \ 'yellow':  '#FFFF00',
+                   \ 'navy':    '#000080',
+                   \ 'blue':    '#0000FF',
+                   \ 'teal':    '#008080',
+                   \ 'aqua':    '#00FFFF' }
 
 
 let g:CSSMinisterCreateMappings = 1
@@ -142,7 +141,7 @@ function! MinisterConvert(from, to, ...)
     if a:from =~ '\vhex|rgb|rgba|hsl|hsla|keyword'
         if all == 'all'
             call s:ReplaceAll(a:from, a:to)
-        else 
+        else
             call s:ReplaceNext(a:from, a:to)
         endif
     endif
@@ -222,7 +221,7 @@ function! ToHex(from_format)
         let rgb = s:HSLToRGB(a:from_format)
         return s:RGBToHex(rgb)
     elseif s:IsKeyword(a:from_format)
-	return s:KeywordToHex(a:from_format)
+        return s:KeywordToHex(a:from_format)
     endif
 endfunction
 
@@ -230,7 +229,7 @@ endfunction
 " Format verification functions {{{1
 " -----------------------------------------------------------------------------
 " Assumes the color being passed in is of the these formats:
-"   rgb(0, 70, 255); 
+"   rgb(0, 70, 255);
 "   rgb(0%, 50%, 100%);
 function! s:IsRGB(color)
     return a:color =~ s:RGB_NUM_RX || a:color =~ s:RGB_PERC_RX
@@ -284,7 +283,7 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
-" s:HSLToRGB: http://www.easyrgb.com/index.php?X=MATH&H=19#text19 
+" s:HSLToRGB: http://www.easyrgb.com/index.php?X=MATH&H=19#text19
 function! s:HSLToRGB(hsl)
     let match = matchlist(a:hsl, s:HSL)
     " the next expression normalizes the angle into the 0-360 range
@@ -341,7 +340,7 @@ endfunction
 
 
 " -----------------------------------------------------------------------------
-" s:HSLAToRGBA: http://www.easyrgb.com/index.php?X=MATH&H=19#text19 
+" s:HSLAToRGBA: http://www.easyrgb.com/index.php?X=MATH&H=19#text19
 function! s:HSLAToRGBA(hsla)
     let match = matchlist(a:hsla, s:HSLA)
     " the next expression normalizes the angle into the 0-360 range
@@ -377,6 +376,7 @@ endfunction
 
 
 
+" -----------------------------------------------------------------------------
 " s:HSLToHSLA:
 function! s:HSLToHSLA(hsl)
     let match = matchlist(a:hsl, s:HSL)
@@ -400,7 +400,7 @@ function! s:Hue2RGB(v1, v2, vH)
     if H > 1 | let H -= 1 | endif
     if (6 * H) < 1 | return a:v1 + (a:v2 - a:v1) * 6 * H | endif
     if (2 * H) < 1 | return a:v2 | endif
-    if (3 * H) < 2 | return a:v1 + (a:v2 - a:v1) * ((2.0/3) - H) * 6 | endif 
+    if (3 * H) < 2 | return a:v1 + (a:v2 - a:v1) * ((2.0/3) - H) * 6 | endif
     return a:v1
 endfunction
 
@@ -440,12 +440,12 @@ function! s:RGBToHSL(rgb)
     if empty(norm_rgb)
         let norm_rgb = matchlist(a:rgb, s:RGB_NUM_RX)
         let norm_rgb = map(norm_rgb, 'str2nr(v:val)')
-    else 
+    else
         " strip off the %'s
         let norm_rgb = map(norm_rgb, 'str2nr(v:val)')
         let norm_rgb = map(norm_rgb, 'v:val*255')
     endif
-    
+
     let rgb_dict = {}
     let [rgb_dict.r, rgb_dict.g, rgb_dict.b] = norm_rgb[1:3]
 
@@ -460,7 +460,7 @@ function! s:RGBToHSL(rgb)
 
     if delta == 0
         let [hsl.h, hsl.s] = [0, 0]
-    else 
+    else
         let hsl.s = hsl.l < 0.5 ? delta/(max + min + 0.0) : delta/(2.0 - max - min)
 
         let delta_rgb = {}
@@ -468,11 +468,11 @@ function! s:RGBToHSL(rgb)
         let delta_g = (((max - rgb_dict.g)/6.0) + (delta/2.0))/delta
         let delta_b = (((max - rgb_dict.b)/6.0) + (delta/2.0))/delta
 
-        if rgb_dict.r == max 
+        if rgb_dict.r == max
             let hsl.h = delta_b - delta_g
-        elseif rgb_dict.g == max 
+        elseif rgb_dict.g == max
             let hsl.h = (1/3.0) + delta_r - delta_b
-        elseif rgb_dict.b == max 
+        elseif rgb_dict.b == max
             let hsl.h = (2/3.0) + delta_g - delta_r
         endif
 
@@ -495,12 +495,12 @@ function! s:RGBToHSLA(rgb)
     if empty(norm_rgb)
         let norm_rgb = matchlist(a:rgb, s:RGB_NUM_RX)
         let norm_rgb = map(norm_rgb, 'str2nr(v:val)')
-    else 
+    else
         " strip off the %'s
         let norm_rgb = map(norm_rgb, 'str2nr(v:val)')
         let norm_rgb = map(norm_rgb, 'v:val*255')
     endif
-    
+
     let rgb_dict = {}
     let [rgb_dict.r, rgb_dict.g, rgb_dict.b] = norm_rgb[1:3]
 
@@ -525,9 +525,9 @@ function! s:RGBToHSLA(rgb)
 
         if rgb_dict.r == max 
             let hsl.h = delta_b - delta_g
-        elseif rgb_dict.g == max 
+        elseif rgb_dict.g == max
             let hsl.h = (1/3.0) + delta_r - delta_b
-        elseif rgb_dict.b == max 
+        elseif rgb_dict.b == max
             let hsl.h = (2/3.0) + delta_g - delta_r
         endif
 
@@ -539,12 +539,68 @@ function! s:RGBToHSLA(rgb)
 endfunction
 
 
+" Color to HSL conversion {{{1
+" -----------------------------------------------------------------------------
+" s:RGBAToHSLA: http://www.easyrgb.com/index.php?X=MATH&H=18#text18
+" Args:
+"   rgb: A string representing a color in RGB format, i.e. 'hsl(0, 50%, 100%)'
+function! s:RGBAToHSLA(rgba)
+    " normalize rgb values - they can be in either the range 0-255 or 0-100%
+    let norm_rgba = matchlist(a:rgba, s:RGBA_PERC_RX)
+    if empty(norm_rgba)
+        let norm_rgba = matchlist(a:rgba, s:RGBA_NUM_RX)
+        let norm_rgba = map(norm_rgba, 'str2nr(v:val)')
+    else
+        " strip off the %'s
+        let norm_rgba = map(norm_rgba, 'str2nr(v:val)')
+        let norm_rgba = map(norm_rgba, 'v:val*255')
+    endif
+
+    let rgba_dict = {}
+    let [rgba_dict.r, rgba_dict.g, rgba_dict.b, rgba_dict.a] = norm_rgba[1:4]
+
+    let min = min(rgba_dict)/255.0
+    let max = max(rgba_dict)/255.0
+    let delta = (max - min)
+
+    let rgba_dict = map(rgba_dict, 'v:val/255.0')
+
+    let hsla = {}
+    let hsla.l = ( max + min )/2.0
+
+    if delta == 0
+        let [hsla.h, hsla.s] = [0, 0]
+    else 
+        let hsla.s = hsla.l < 0.5 ? delta/(max + min + 0.0) : delta/(2.0 - max - min)
+
+        let delta_rgba = {}
+        let delta_r = (((max - rgba_dict.r)/6.0) + (delta/2.0))/delta
+        let delta_g = (((max - rgba_dict.g)/6.0) + (delta/2.0))/delta
+        let delta_b = (((max - rgba_dict.b)/6.0) + (delta/2.0))/delta
+        let delta_a = (rgba_dict.a)
+
+        if rgba_dict.r == max 
+            let hsla.h = delta_b - delta_g
+        elseif rgba_dict.g == max
+            let hsla.h = (1/3.0) + delta_r - delta_b
+        elseif rgba_dict.b == max
+            let hsla.h = (2/3.0) + delta_g - delta_r
+        endif
+        let hsla.a = delta_a
+
+        if hsla.h < 0 | let hsla.h += 1 | endif
+        if hsla.h > 1 | let hsla.h -= 1 | endif
+    endif
+
+    return s:OutputRGBAToHSLA(hsla)
+endfunction
+
 
 " -----------------------------------------------------------------------------
 " s:OutputHSL: Outputs a formatted string in hsl format.
 " Args:
 "   hsl: Dictionary with h, s, l keys. Their values are normalized in order to
-"        return a valid formatted string. 
+"        return a valid formatted string.
 function! s:OutputHSL(hsl)
     let temp_hsl = a:hsl
     let temp_hsl.h = float2nr( temp_hsl.h * 360.0 )
@@ -558,12 +614,25 @@ endfunction
 " s:OutputHSLA: Outputs a formatted string in hsl format.
 " Args:
 "   hsl: Dictionary with h, s, l keys. Their values are normalized in order to
-"        return a valid formatted string. 
+"        return a valid formatted string.
 function! s:OutputHSLA(hsl)
     let temp_hsl = a:hsl
     let temp_hsl.h = float2nr( temp_hsl.h * 360.0 )
     let [temp_hsl.s, temp_hsl.l] = map([temp_hsl.s, temp_hsl.l], "float2nr(round(v:val * 100)) . '%'")
     return 'hsla(' . temp_hsl.h . ', ' . temp_hsl.s . ', ' . temp_hsl.l . ', 1.0)'
+endfunction
+
+
+" -----------------------------------------------------------------------------
+" s:OutputRGBAToHSLA: Outputs a formatted string in hsl format.
+" Args:
+"   hsl: Dictionary with h, s, l keys. Their values are normalized in order to
+"        return a valid formatted string.
+function! s:OutputRGBAToHSLA(hsl)
+    let temp_hsla = a:hsla
+    let temp_hsla.h = float2nr( temp_hsla.h * 360.0 )
+    let [temp_hsla.s, temp_hsla.l] = map([temp_hsla.s, temp_hsla.l], "float2nr(round(v:val * 100)) . '%'")
+    return 'hsla(' . temp_hsla.h . ', ' . temp_hsla.s . ', ' . temp_hsla.l . ', ' . temp_hsla.a . ')'
 endfunction
 
 
@@ -625,7 +694,7 @@ function! s:ReplaceAll(from, to)
     endif
 
     let matchingLines = filter(copy(lines), "v:val =~ regex")
-    
+
     for line in matchingLines
         let lineNum = index(lines, line) + 1
         let convert = s:ReplacementPairings(a:from, a:to)
@@ -668,11 +737,11 @@ endfunction
 "   to:   the color format we're converting to
 function! s:ReplacementPairings(from, to)
     let pairings = {}
-    let from_rx_mappings = { 'rgb': s:RGB_NUM_RX . '|' . strpart(s:RGB_PERC_RX, 4, strlen(s:RGB_PERC_RX)), 
-                           \ 'rgba': s:RGBA_NUM_RX . '|' . strpart(s:RGBA_PERC_RX, 4, strlen(s:RGBA_PERC_RX)), 
-                           \ 'hsl': s:HSL, 
-                           \ 'hsla': s:HSLA, 
-                           \ 'hex': s:HEX_DISCOVERY, 
+    let from_rx_mappings = { 'rgb': s:RGB_NUM_RX . '|' . strpart(s:RGB_PERC_RX, 4, strlen(s:RGB_PERC_RX)),
+                           \ 'rgba': s:RGBA_NUM_RX . '|' . strpart(s:RGBA_PERC_RX, 5, strlen(s:RGBA_PERC_RX)),
+                           \ 'hsl': s:HSL,
+                           \ 'hsla': s:HSLA,
+                           \ 'hex': s:HEX_DISCOVERY,
                            \ 'keyword': s:W3C_COLOR_RX }
 
     if a:to == 'hex' | let pairings.to = 'Hex' |
