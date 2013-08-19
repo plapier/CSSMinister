@@ -480,7 +480,7 @@ endfunction
 "   rgb: A string in rgb format
 "   {opacity}: Preserves opacity when converting from HSLA values
 function! s:OutputRGBA(rgb, ...)
-    let opacity = a:0 == 1 ? a:1 : 1
+    let opacity = a:0 == 1 ? a:1 : '1.0'
     let temp_rgb = matchstr(a:rgb, '\vrgb\(.*\)@=') . ', ' . opacity . ')'
     return substitute(temp_rgb, '\vrgb', 'rgba', '')
 endfunction
@@ -577,11 +577,10 @@ endfunction
 "   hsl: A string in hsl format
 "   {opacity}: Preserves opacity value for converting from RGBA
 function! s:OutputHSLA(hsl, ...)
-    let opacity = a:0 == 1 ? a:1 : 1
+    let opacity = a:0 == 1 ? a:1 : '1.0'
     let temp_hsl = matchstr(a:hsl, '\vhsl\(.*\)@=') . ', ' . opacity . ')'
     return substitute(temp_hsl, '\vhsl', 'hsla', '')
 endfunction
-
 
 " -----------------------------------------------------------------------------
 " Color to Hex conversion {{{1
